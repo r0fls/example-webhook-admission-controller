@@ -21,7 +21,6 @@ import (
 	"flag"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/pkg/api/v1"
@@ -52,11 +51,10 @@ func admit(data []byte) *AdmissionReviewStatus {
 	}
 	reviewStatus := AdmissionReviewStatus{}
 	for _, container := range pod.Spec.Containers {
-		// gcr.io is just an example.
-		if !strings.Contains(container.Image, "gcr.io") {
+		if container.SecurityContext.Privileged != nil {
 			reviewStatus.Allowed = false
 			reviewStatus.Result = &metav1.Status{
-				Reason: "can only pull image from grc.io",
+				Reason: "Not allowed to create privilged containers.",
 			}
 			return &reviewStatus
 		}
